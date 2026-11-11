@@ -1,0 +1,38 @@
+{
+  "agents": [
+    {
+      "id": "1",
+      "name": "shop",
+      "state": "coding",
+      "action": "連線伺服器",
+      "activity": "ssh",
+      "target": "web-prod-01",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "id": "2",
+      "name": "api",
+      "state": "coding",
+      "action": "操作資料庫",
+      "activity": "db",
+      "target": "db-prod",
+      "model": "claude-opus-5-5"
+    },
+    {
+      "id": "3",
+      "name": "admin",
+      "state": "coding",
+      "action": "操作容器",
+      "activity": "container",
+      "target": "prod-east",
+      "model": "claude-fable-5"
+    },
+    {
+      "id": "4",
+      "name": "web",
+      "state": "coding",
+      "action": "編輯 index.html",
+      "model": "claude-sonnet-5-5"
+    }
+  ]
+}

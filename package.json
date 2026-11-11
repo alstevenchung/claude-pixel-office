@@ -1,0 +1,7 @@
+{
+  "name": "pixel-office",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Pixel office that visualizes Claude Code sessions via hooks. Zero dependencies.",
+  "scripts": { "start": "node server/server.js" }
+}

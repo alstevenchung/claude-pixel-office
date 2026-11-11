@@ -1,0 +1,7 @@
+# personal / generated data - never publish
+.app-profile/
+office-state.json
+.pack-extra-patterns.txt
+*.pixel-office-backup-*
+PixelOffice.zip
+node_modules/

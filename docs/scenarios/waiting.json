@@ -1,0 +1,37 @@
+{
+  "agents": [
+    {
+      "id": "1",
+      "name": "shop",
+      "state": "thinking",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "id": "2",
+      "name": "api",
+      "state": "coding",
+      "action": "執行：跑測試",
+      "model": "claude-opus-5-5"
+    },
+    {
+      "id": "3",
+      "name": "admin",
+      "state": "coding",
+      "action": "編輯 Admin.cs",
+      "model": "claude-fable-5"
+    }
+  ],
+  "bossShow": {
+    "id": "1",
+    "line": "怎麼這麼慢？！",
+    "at": 300
+  },
+  "events": [
+    {
+      "type": "waiting",
+      "id": "1",
+      "n": 1,
+      "at": 400
+    }
+  ]
+}

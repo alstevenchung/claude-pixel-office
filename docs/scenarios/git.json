@@ -1,0 +1,52 @@
+{
+  "agents": [
+    {
+      "id": "1",
+      "name": "shop",
+      "state": "coding",
+      "action": "推送程式碼",
+      "activity": "push",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "id": "2",
+      "name": "api",
+      "state": "coding",
+      "action": "提交變更",
+      "activity": "commit",
+      "model": "claude-opus-5-5"
+    },
+    {
+      "id": "3",
+      "name": "admin",
+      "state": "coding",
+      "action": "提交 PR",
+      "activity": "pr",
+      "model": "claude-fable-5"
+    },
+    {
+      "id": "4",
+      "name": "web",
+      "state": "coding",
+      "action": "拉取更新",
+      "activity": "pull",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "id": "5",
+      "name": "docs",
+      "state": "coding",
+      "action": "合併分支",
+      "activity": "merge",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "id": "6",
+      "name": "bot",
+      "state": "coding",
+      "action": "Git 操作",
+      "activity": "git",
+      "model": "claude-opus-5-5"
+    }
+  ]
+}

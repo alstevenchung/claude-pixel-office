@@ -1,0 +1,30 @@
+{
+  "agents": [
+    {
+      "id": "1",
+      "name": "shop",
+      "state": "coding",
+      "action": "編輯 Cart.cs",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "id": "2",
+      "name": "api",
+      "state": "thinking",
+      "model": "claude-opus-5-5"
+    },
+    {
+      "id": "3",
+      "name": "admin",
+      "state": "coding",
+      "action": "執行：跑測試",
+      "model": "claude-fable-5"
+    }
+  ],
+  "whip": [
+    {
+      "id": "2",
+      "at": 4800
+    }
+  ]
+}

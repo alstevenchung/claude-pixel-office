@@ -1,0 +1,51 @@
+{
+  "agents": [
+    {
+      "id": "1",
+      "name": "shop",
+      "state": "coding",
+      "action": "編輯 Cart.cs",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "id": "2",
+      "name": "api",
+      "state": "thinking",
+      "model": "claude-opus-5-5"
+    },
+    {
+      "id": "3",
+      "name": "admin",
+      "state": "waiting_approval",
+      "action": "執行：安裝套件",
+      "model": "claude-fable-5"
+    },
+    {
+      "id": "4",
+      "name": "docs",
+      "state": "coding",
+      "action": "搜尋程式碼",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "id": "5",
+      "name": "ops",
+      "state": "idle",
+      "model": "claude-sonnet-5-5"
+    },
+    {
+      "id": "1#a",
+      "kind": "helper",
+      "parent": "1",
+      "name": "Explore",
+      "state": "coding"
+    }
+  ],
+  "spend": [
+    {
+      "id": "1",
+      "tokens": 3703,
+      "at": 4400
+    }
+  ]
+}
