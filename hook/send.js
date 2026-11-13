@@ -160,12 +160,14 @@ process.stdin.on('end', () => {
   let h = {};
   try { h = JSON.parse(raw); } catch { process.exit(0); }
   const ev = h.hook_event_name;
-  let state, action = '', activity = '', opHost = '';
+  let state, action = '', activity = '', opHost = '', bg = false;
   switch (ev) {
     case 'SessionStart': state = 'idle'; break;
     case 'UserPromptSubmit': state = 'thinking'; break;
     case 'PreToolUse':
       state = 'coding'; action = describe(h.tool_name, h.tool_input);
+      // a background job (run_in_background / Monitor / Workflow): just a boolean, nothing about the job is sent
+      if (!h.agent_id && ((h.tool_input && h.tool_input.run_in_background === true) || h.tool_name === 'Monitor' || h.tool_name === 'Workflow')) bg = true;
       if ((h.tool_name === 'Bash' || h.tool_name === 'PowerShell') && !h.agent_id) {
         const c = classify(h.tool_input && h.tool_input.command);
         activity = c.activity; opHost = c.target;
@@ -196,6 +198,7 @@ process.stdin.on('end', () => {
     id: sid,
     name: path.basename(process.env.CLAUDE_PROJECT_DIR || h.cwd || ''),
     state, action, activity: activity || undefined, target: opHost || undefined,
+    bg: bg || undefined, stop: ev === 'Stop' ? true : undefined,   // flags only
     prompt: ev === 'UserPromptSubmit' ? true : undefined,   // just a flag: the text of the prompt is never sent
     model: h.model ? String(h.model) : (state === 'gone' ? undefined : modelFromTranscript(h.transcript_path)),
   });

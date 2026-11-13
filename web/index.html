@@ -7,12 +7,28 @@
 <style>
   html,body{margin:0;height:100%;background:#23202e;color:#cfd2e6;font:14px system-ui,sans-serif}
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px}
-  canvas{width:min(96vw,calc(96vh*16/9));aspect-ratio:16/9;background:#c79c6d;border:3px solid #5d4a3a;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+  #stage{position:relative;width:min(96vw,calc(96vh*16/9));aspect-ratio:16/9;background:#2b2840;border:3px solid #5d4a3a;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.5);overflow:hidden;--u:1}
+  #c{position:absolute;inset:0;width:100%;height:100%;display:block}
+  #ov{position:absolute;inset:0;pointer-events:none;overflow:hidden;font-family:'Microsoft JhengHei','PingFang TC',system-ui,sans-serif}
+  #ov>div{position:absolute;left:0;top:0;white-space:nowrap;will-change:transform}
+  .tag{font-weight:700;font-size:calc(var(--u)*17px);color:#fff;text-align:center;text-shadow:-1px -1px 0 #14141f,1px -1px 0 #14141f,-1px 1px 0 #14141f,1px 1px 0 #14141f,0 2px 3px #0008}
+  .tag small{display:block;font-size:.78em;font-weight:600;color:#bcd0ff}
+  .tag.sign{font-size:calc(var(--u)*14px)} .tag.hot{color:#ffd166}
+  .tag.boss{color:#ff9a9a} .tag.bot{color:#d9ffe9;font-size:calc(var(--u)*14px)} .tag.more{color:#ffd166;font-size:calc(var(--u)*14px)}
+  .bub{background:#fff;color:#000;font-size:calc(var(--u)*16px);font-weight:600;padding:calc(var(--u)*4px) calc(var(--u)*9px);border-radius:calc(var(--u)*6px);white-space:normal!important;width:max-content;max-width:calc(var(--u)*200px);line-height:1.25;box-shadow:0 2px 6px #0006}
+  .bub::after{content:"";position:absolute;left:calc(var(--u)*-6px);bottom:calc(var(--u)*5px);border:calc(var(--u)*4px) solid transparent;border-right-color:#fff;border-left:0}
+  .bub.left::after{left:auto;right:calc(var(--u)*-6px);border-right:0;border-left:calc(var(--u)*6px) solid #fff}
+  .bub .bang{position:absolute;right:calc(var(--u)*-7px);top:calc(var(--u)*-9px);background:#d62828;color:#fff;border-radius:50%;width:calc(var(--u)*16px);height:calc(var(--u)*16px);line-height:calc(var(--u)*16px);text-align:center;font-size:calc(var(--u)*11px)}
+  .bub.boss{border:calc(var(--u)*2px) solid #d62828;color:#b3001b;font-weight:800;max-width:calc(var(--u)*220px)}
+  .bub.boss::after{left:50%;bottom:calc(var(--u)*-7px);margin-left:calc(var(--u)*-4px);border:calc(var(--u)*4px) solid transparent;border-top:calc(var(--u)*6px) solid #d62828;border-bottom:0;border-right-color:transparent}
+  .fl{font-weight:800;font-size:calc(var(--u)*20px);color:#ff6b6b;text-shadow:-1px -1px 0 #14141f,1px -1px 0 #14141f,-1px 1px 0 #14141f,1px 1px 0 #14141f}
+  .fl.big{font-size:calc(var(--u)*28px);color:#ffd166}
+  .say{font-weight:800;font-size:calc(var(--u)*19px);color:#9dffb0;text-shadow:-1px -1px 0 #14141f,1px -1px 0 #14141f,-1px 1px 0 #14141f,1px 1px 0 #14141f}
+  .say.hit{color:#fff} .say.wait{color:#ffb347} .say.crack{font-size:calc(var(--u)*32px);color:#ffd166}
+  #empty{left:50%!important;top:50%!important;transform:translate(-50%,-50%);font-size:calc(var(--u)*20px);font-weight:700;color:#cfd2e6}
   #status{opacity:.7}
   #hud{width:min(96vw,calc(96vh*16/9));display:grid;grid-template-columns:1fr 1fr;gap:10px 14px;align-items:center;
        background:#2a2638;border:3px solid #5d4a3a;border-radius:6px;padding:10px 14px;box-sizing:border-box;font-weight:600}
-  .who{display:flex;flex-direction:column;gap:2px;min-width:110px}
-  .who small{opacity:.65;font-weight:400}
   .bar{display:flex;flex-direction:column;gap:3px}
   .bar .t{display:flex;justify-content:space-between;font-size:13px}
   .track{height:16px;background:#14121c;border:2px solid #0b0a10;border-radius:3px;overflow:hidden;position:relative}
@@ -21,18 +37,19 @@
   .hp .fill{background:linear-gradient(#ff5d5d,#c62828)} .mp .fill{background:linear-gradient(#5aa9ff,#2563c9)}
   .hp.hit .track{animation:hit .35s}@keyframes hit{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px)}40%{transform:translateX(4px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}} .hp.hit .fill{filter:brightness(1.7)} .low .fill{animation:blink 1s infinite} @keyframes blink{50%{opacity:.45}}
   #note{grid-column:1/-1;font-size:11px;opacity:.55;font-weight:400}
+  #note a{color:#9db4ff}
 </style>
 </head>
 <body>
-<canvas id="c" width="320" height="180"></canvas>
+<div id="stage"><canvas id="c"></canvas><div id="ov"></div></div>
 <div id="hud">
   <div class="bar hp" id="hp"><div class="t"><span>❤ HP 今日剩餘</span><span id="hpT">—</span></div><div class="track"><div class="fill"></div></div></div>
   <div class="bar mp" id="mp"><div class="t"><span>✦ MP 本週剩餘</span><span id="mpT">—</span></div><div class="track"><div class="fill"></div></div></div>
   <div id="note">預算可在 usage-config.json 修改；已用 = 輸入 + 輸出 + 快取寫入。</div>
 </div>
 <div id="status">連線中…</div>
-<script src="sprites.js"></script>
-<script src="main.js"></script>
+<script src="vendor/three.min.js"></script>
+<script src="main3d.js"></script>
 <script src="hud.js"></script>
 </body>
 </html>
