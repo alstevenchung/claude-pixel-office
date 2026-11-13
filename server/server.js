@@ -9,11 +9,12 @@ const ROOT = path.join(__dirname, '..');
 const WEB = path.join(ROOT, 'web');
 const PORT = Number(process.env.PORT) || 8787;
 const HOST = '127.0.0.1';
-const STATES = new Set(['coding', 'thinking', 'idle', 'waiting_approval', 'gone']);
+const STATES = new Set(['coding', 'thinking', 'idle', 'waiting_approval', 'background', 'gone']);
 const ACTIVITIES = new Set(['pr', 'merge', 'push', 'commit', 'pull', 'gh', 'git', 'ssh', 'db', 'container']);
 const STALE_MS = 30 * 60 * 1000;
 const MAX_CLIENTS = 50;
 
+const bgPending = new Set(); // session ids that started a background job this turn
 const agents = new Map(); // id -> {id,name,state,action,model,activity,target,kind,parent,ts}
 const clients = new Set();
 
@@ -67,6 +68,13 @@ const server = http.createServer((req, res) => {
         saveSoon();
       } else {
         const prev = agents.get(id);
+        // Background jobs: when a turn ends (Stop) after one was started, the person is "waiting on the background" instead of idle.
+        if (e.bg === true) bgPending.add(id);
+        if (e.prompt === true) bgPending.delete(id);
+        if (e.state === 'idle') {
+          if (e.stop === true && bgPending.has(id)) { e.state = 'background'; e.action = ''; bgPending.delete(id); }
+          else if (e.stop !== true && prev && prev.state === 'background') e.state = 'background';   // a later idle_prompt must not end the wait
+        }
         const a = { id, name: clean(e.name, 24) || id.slice(0, 8), state: e.state, action: clean(e.action, 60), ts: Date.now() };
         a.model = clean(e.model, 64) || (prev && prev.model) || '';
         a.activity = a.state === 'coding' && ACTIVITIES.has(String(e.activity)) ? String(e.activity) : ''; // git / PR / server / DB animation

@@ -69,7 +69,7 @@
 - 你送出訊息的瞬間，小人會跳一下並冒出 **「收到！」**。
 - **老闆**（禿頭、大肚子、紅領帶）有時會走過來碎念；**單次花超過 5 萬 token 一定會來**。
 - 台詞是預先寫好的罐頭台詞，**不是根據你輸入的內容**；你的提問文字不會被讀取或送出。
-- 出現機率、間隔、台詞可以在 `web/main.js` 開頭調整。
+- 出現機率、間隔、台詞可以在 `web/main3d.js` 開頭調整。
 
 ### 訊息在排隊？老闆會一直催，直到它開始處理
 
@@ -143,7 +143,7 @@
 ## 設定
 
 - **用量預算**：編輯 `usage-config.json` 的 `dailyBudget`、`weeklyBudget`（token 數）。
-- **老闆與特效**：`web/main.js` 開頭的 `BOSS_CHANCE`、`BOSS_COOLDOWN_MS`、`BOSS_SPEND_MIN`、`BOSS_LINES`。
+- **老闆與特效**：`web/main3d.js` 開頭的 `BOSS_CHANCE`、`BOSS_COOLDOWN_MS`、`BOSS_SPEND_MIN`、`BOSS_LINES`。
 - **連接埠**：預設 8787，可用環境變數 `PORT`（伺服器）與 `PIXEL_OFFICE_PORT`（hook）修改。
 
 ## 已知限制

@@ -8,6 +8,14 @@ description: 修改、除錯或擴充「像素辦公室」專案（把本機 Cla
 零依賴（只用 Node.js 內建模組）的本機工具：Claude Code 的 hooks 把狀態送到本機伺服器，網頁用 Canvas 畫成像素辦公室。
 **只限本機，沒有任何遠端／網路功能。**（曾做過 Tailscale 遠端版，使用者因安全顧慮要求整個移除；沒有使用者明確要求，不要重新加回。）
 
+## 3D 版（預設畫面）
+
+`web/index.html` + `web/main3d.js` 是 three.js 體素 3D 版（r160，`web/vendor/three.min.js` 內建，**不走 CDN**，維持純本機）。已移除舊的 2D 像素版（使用者明說不要切換、只用 3D）；沒有 WebGL 時頁面只顯示提示。老闆、鞭打、扣血數字、活動動畫的邏輯全在 `main3d.js`。
+- 座標沿用 2D 的 320×180 邏輯座標，世界座標 = 邏輯/10（x→x，y→z）；牆在 z=4.1。人物面向 +z，坐著時面向 -z（背對鏡頭）。
+- 文字（名字、對話框、「收到！」、扣血數字、老闆台詞）是 DOM 標籤（`#ov`），用 `lab()` 釘在 3D 座標上；不是畫在 canvas。
+- 預覽：`node tests/preview.js scenario.json out.png` 預設截 3D（用 SwiftShader 軟體 WebGL）。`tests/boss_logic_test.js` 也是對 3D 頁面跑（透過 `__po.updateBoss`）。
+- 3D 頁面在真實視窗裡的效果我（Claude）只用無頭預覽驗證過；改完請使用者實際看過才算數。
+
 ## 資料流
 
 ```
@@ -21,8 +29,8 @@ Claude Code ──hook(stdin JSON)──> hook/send.js ──POST /event──> 
 | `hook/send.js` | 讀 hook JSON → 分類 → POST 到 `127.0.0.1:8787`。失敗一律靜默 exit 0，絕不能卡住 Claude |
 | `server/server.js` | 只綁 `127.0.0.1`。`POST /event`、`GET /events`(SSE)、`GET /usage`、靜態檔 `web/`。狀態存 `office-state.json`（30 分鐘過期）。每 2.5 秒輪詢 token 總量並廣播 `spend` |
 | `server/usage.js` | 增量掃 `~/.claude/projects/**/*.jsonl`（8 天窗口，用 message id 去重）。`summary()`、`sessionTotals()` |
-| `web/main.js` | 房間、桌位 `DESKS`、`drawAgent`、`drawHelpers`、`drawActivity`、`drawFloats`（扣血數字） |
-| `web/sprites.js` | 程式生成人物（16×24，自動描邊）與助手機器人。`getSprite(name, frame, color, look, flip)` |
+| `web/main3d.js` | three.js 3D 場景：房間、桌位 `DESKS`、人物／助手／老闆、活動動畫、DOM 標籤、扣血數字、鞭打 |
+| `web/vendor/three.min.js` | three.js r160（MIT），內建不走 CDN |
 | `web/hud.js` | 下方 HP（今日）/ MP（近 7 天）條，每 10 秒更新，`pulseHp()` |
 | `usage-config.json` | 每日／每週 token 預算（使用者自訂；剩餘量 = 預算 − 已用，**不是官方額度**） |
 | `app.ps1`、`start.bat`、`start-in-browser.bat`、`app.ico` | 桌面應用程式（Edge `--app` 視窗）。桌面有「像素辦公室」捷徑指向 `start.bat` |
@@ -45,7 +53,7 @@ Claude Code ──hook(stdin JSON)──> hook/send.js ──POST /event──> 
 - 桌面應用程式：雙擊捷徑／`start.bat` 開獨立視窗；關窗時若伺服器是這次啟動的就一併關閉。
 - **純娛樂特效（不影響任何東西、不送任何資料）：**
   - **「收到！」**：使用者送出訊息的瞬間（`UserPromptSubmit` → 伺服器廣播 `prompt` 事件），那個小人跳一下並冒出「收到！」。
-  - **老闆（BOSS）**：禿頭、大肚子、紅領帶；從右下角入口走到小人旁邊，對話框紅框碎念罐頭台詞、小人冒汗，約 5.5 秒後走掉。送出訊息時有機率出現；**單次花超過 5 萬 token 一定出現**。可調參數在 `web/main.js` 開頭：`BOSS_CHANCE`（0.5）、`BOSS_COOLDOWN_MS`（45000）、`BOSS_SPEND_MIN`（50000）；台詞在 `BOSS_LINES`／`BOSS_SPEND_LINES`。
+  - **老闆（BOSS）**：禿頭、大肚子、紅領帶；從右下角入口走到小人旁邊，對話框紅框碎念罐頭台詞、小人冒汗，約 5.5 秒後走掉。送出訊息時有機率出現；**單次花超過 5 萬 token 一定出現**。可調參數在 `web/main3d.js` 開頭：`BOSS_CHANCE`（0.5）、`BOSS_COOLDOWN_MS`（45000）、`BOSS_SPEND_MIN`（50000）；台詞在 `BOSS_LINES`／`BOSS_SPEND_LINES`。
   - **訊息在排隊 → 老闆一直碎念到被處理**：使用者在 Claude 還在忙時又送出訊息，Claude Code 會在對話紀錄寫 `queue-operation`（`enqueue` 進佇列；Claude 取用時是 `remove`（中途插入）或 `dequeue`（下一輪處理））。`server/usage.js` 用**文字比對**只取出動作字＋sessionId（**不解析 `content`，那是使用者的訊息**），`server/server.js` 每秒統計每個工作階段的排隊數並廣播 `{type:'waiting', id, n}`。頁面：`n>0` → 老闆**快步**衝去、`hold`（一直待著、台詞每 3.2 秒換一句、小人頭上「等待處理中…」），`n` 回到 0 → 小人「收到！」、老闆走（若另一個人還在等就先去找他）。**不要再用「UserPromptSubmit 時工作階段是不是忙」來猜**，那不準。
   - **鞭打**：滑鼠點小人（或助手機器人）→ 鞭子從右上甩下「啪！」，小人抖動、冒星星、喊「哎呀！」等。點老闆本人他會罵「你敢鞭打老闆！？」。使用者明說這「沒有任何意義」：純畫面效果，別讓它去影響狀態或送出任何東西。
 
@@ -82,7 +90,7 @@ hook **只能**送出：session id、專案資料夾名、狀態、`action` 描�
 
 1. `hook/send.js`：`ACTIVITY_ORDER`（優先序）、`ACTIVITY_LABEL`、`classify()`。需要主機名就用 `hostOnly()`，**不要**把任何其他片段放進 payload。
 2. `server/server.js`：把名稱加進 `ACTIVITIES`（有 target 的還要加進 `target` 白名單那行）。
-3. `web/main.js`：`drawActivity()` 加動畫；需要道具就在 `drawRoom()` 加（先查版面地圖）。
+3. `web/main3d.js`：`makeFx()`／`updateFx()` 加動畫；需要道具就在 `buildRoom()` 加（先查版面地圖）。
 4. `tests/hook_classify_test.js`：加指令案例＋洩漏檢查字串。
 5. 跑測試、跑 `tests/preview.js` 看畫面、重啟應用程式。
 
